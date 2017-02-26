@@ -22,7 +22,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
    * Creating a layer group
-   * Retrieving component versions
    * Retrieving manifests
    * Filtering over resource name
    * Filtering over resource properties
@@ -452,6 +451,40 @@ The featuretype information can be retrieved as XML with a GET request:
    print(r)                                                                        
    doc = etree.fromstring(r.content)
    etree.dump(doc) 
+
+Retrieving component versions
+-----------------------------
+
+This example shows how to retrieve the versions of the main components:
+GeoServer, GeoTools, and GeoWebCache:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/about/version.xml'
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
+The response will look something like this:
+
+.. code-block:: xml
+
+   <about>
+     <resource name="GeoServer">
+       <Build-Timestamp>20-Dec-2016 17:31</Build-Timestamp>
+       <Version>2.10.1</Version>
+       <Git-Revision>46d8beb44231642944599962b58ee0cccd03fcbb</Git-Revision>
+     </resource>
+     <resource name="GeoTools">
+       <Build-Timestamp>19-Dec-2016 22:01</Build-Timestamp>
+       <Version>16.1</Version>
+       <Git-Revision>c4fcd240049fa0506bb17c9e2281fc963bc9b51a</Git-Revision>
+     </resource>
+     <resource name="GeoWebCache">
+       <Version>1.10.1</Version>
+       <Git-Revision>1.10.x/0355b0eb5a5f2a95f387ce5c30cdf2548ffb1744</Git-Revision>
+     </resource>
+   </about>
 
 Creating an empty mosaic and harvest granules
 ---------------------------------------------
