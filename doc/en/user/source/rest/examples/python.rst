@@ -14,13 +14,27 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    * Deleting a workspace/store/featuretype/style/layergroup
    * Renaming a workspace/store/featuretype/style/layergroup
+   * Configuring an available coverage
+   * Uploading an app-schema mapping file
+   * Uploading multiple app-schema mapping files
+   * Creating a layer style
+   * Changing a layer style
+   * Creating a layer style (SLD package)
+   * Adding a PostGIS table
+   * Creating a layer group
+   * Retrieving component versions
+   * Retrieving manifests
+   * Filtering over resource name
+   * Filtering over resource properties
+   * Uploading and modifying a image mosaic
+   * Master Password Change
 
 Setup
 ----------------------
 
 The following code should be run before the examples.
 
-.. code-block:: console
+.. code-block:: python
 
    # Standard library imports
    import os
@@ -37,7 +51,7 @@ Adding a new workspace
 
 The following creates a new workspace named ``acme`` with a POST request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces.xml')
@@ -57,7 +71,7 @@ Note the ``Location`` response header, which specifies the location (URI) of the
 
 The workspace information can be retrieved as XML with a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme.xml')
@@ -104,7 +118,7 @@ In this example a new store will be created by uploading a shapefile.
 The following request uploads a zipped shapefile named ``roads.zip``
 and creates a new store named ``roads``.
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/roads/file.shp')
@@ -120,7 +134,7 @@ If executed correctly, the output should contain the following::
 
 The store information can be retrieved as XML with a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/roads.xml')
@@ -154,7 +168,7 @@ By default when a shapefile is uploaded, a feature type is automatically
 created. The feature type information can be retrieved as XML with
 a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080geoserver/rest'
           '/workspaces/acme/datastores/roads'
@@ -188,7 +202,7 @@ how to publish a shapefile that already exists on the server.
 Consider a directory ``/data/rivers`` that contains the shapefile
 ``rivers.shp``. The following adds a new store for the shapefile:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme'
@@ -210,7 +224,7 @@ To verify the contents of the store, execute a GET request.  Since the
 XML response only provides details about the store itself without showing
 its contents, execute a GET request for HTML:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/rivers.html')
@@ -228,7 +242,7 @@ to the example above of adding a single shapefile.
 Consider a directory on the server ``/data/shapefiles`` that contains
 multiple shapefiles. The following adds a new store for the directory.
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme'
@@ -249,7 +263,7 @@ To verify the contents of the store, execute a GET request.  Since the
 XML response only provides details about the store itself without showing
 its contents, execute a GET request for HTML:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/shapefiles.html')
@@ -264,7 +278,7 @@ This example shows how to load and create a store that contains a GeoTIFF.
 Consider a GeoTIFF on the server ``/data/rasters/Baltic.tif``.  
 First create a coveragestore for it:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/coveragestores')
@@ -283,7 +297,7 @@ If executed correctly, the response should contain the following::
 
 Now load the GeoTIFF itself.
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme'
@@ -301,7 +315,7 @@ The raster will be added to the existing store and published as a layer.
 
 The coveragestore information can be retrieved as XML with a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/coveragestores/Baltic.xml')
@@ -317,7 +331,7 @@ a new store. This section assumes that a PostGIS database named
 ``nyc`` is present on the local system and is accessible by the
 user ``bob``.
 
-.. code-block:: console
+.. code-block:: python
 
    data = """<dataStore>                                                              
      <name>nyc</name>                                                                 
@@ -342,7 +356,7 @@ If executed correctly, the response should contain the following::
 
 The store information can be retrieved as XML with a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/nyc.xml')
@@ -352,7 +366,7 @@ The store information can be retrieved as XML with a GET request:
 
 The store information can be retrieved as XML with a GET request:
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/nyc.xml')
@@ -387,6 +401,116 @@ The response should look like the following:
      </featureTypes>
    </dataStore>
 
+Creating a PostGIS table
+------------------------
+
+This example will not only create a new feature type in GeoServer,
+but will also create the PostGIS table itself.
+
+This request will perform the feature type creation and add the new table:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/nyc/featuretypes')           
+   headers = {'Content-Type': 'text/xml'}                                          
+
+   data = """<featureType>                                                         
+     <name>annotations</name>                                                      
+     <nativeName>annotations</nativeName>                                          
+     <title>Annotations</title>                                                    
+     <srs>EPSG:4326</srs>                                                          
+     <attributes>                                                                  
+       <attribute>                                                                 
+         <name>the_geom</name>                                                     
+         <binding>com.vividsolutions.jts.geom.Point</binding>                      
+       </attribute>                                                                
+       <attribute>                                                                 
+         <name>description</name>                                                  
+         <binding>java.lang.String</binding>                                       
+       </attribute>                                                                
+       <attribute>                                                                 
+         <name>timestamp</name>                                                    
+         <binding>java.util.Date</binding>                                         
+       </attribute>                                                                
+     </attributes>                                                                 
+   </featureType>"""                                                               
+
+   r = s.post(url, data=data, headers=headers)                                     
+   print(r)  
+    
+The result is a new, empty table named "annotations" in the "nyc"
+database, fully configured as a feature type.
+
+The featuretype information can be retrieved as XML with a GET request:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/acme/datastores/nyc/featuretypes/annotations.xml')          
+   r = s.get(url)                                                                  
+   print(r)                                                                        
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
+Creating an empty mosaic and harvest granules
+---------------------------------------------
+
+The next command uploads an :download:`empty.zip` file. 
+This archive contains the definition of an empty mosaic (no granules in this case) through the following files::
+
+      datastore.properties (the postgis datastore connection params)
+      indexer.xml (The mosaic Indexer, note the CanBeEmpty=true parameter)
+      polyphemus-test.xml (The auxiliary file used by the NetCDF reader to parse schemas and tables)
+
+.. note:: **Make sure to update the datastore.properties file** with your connection params and refresh the zip when done, before uploading it. 
+.. note:: The code blocks below contain a single command that is extended over multiple lines.
+.. note:: The configure=none parameter allows for future configuration after harvesting
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp'
+          '/coveragestores/empty/file.imagemosaic?configure=none') 
+   headers = { 'Content-Type': 'application/zip', }                                
+   with open('empty.zip', 'rb') as f:                                         
+       data = f.read()                                                             
+   r = s.put(url, headers=headers, data=data)                                      
+   r.raise_for_status()                                                            
+   print(r)  
+
+The following instead instructs the mosaic to harvest a single :download:`polyphemus_20120401.nc` file into the mosaic, collecting its properties and updating the mosaic index:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp'
+          '/coveragestores/empty/external.imagemosaic') 
+   headers = { 'Content-Type': 'text/plain', }                                
+   data = "file:///path/to/polyphemus_20120401.nc"
+   r = s.post(url, headers=headers, data=data)                                      
+   print(r) 
+
+Once done you can get the list of coverages/granules available on that store.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages.xml')
+   params = {'list': 'all'}
+   r = s.get(url, params=params)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+which will result in the following:
+
+.. code-block:: xml
+
+      <list>
+        <coverageName>NO2</coverageName>
+        <coverageName>O3</coverageName>
+      </list>
+
 
 Deleting a workspace
 --------------------
@@ -395,7 +519,7 @@ This example shows how to delete a workspace and all its contents.
 The "acme" store that has been populated throught these examples will
 be deleted.
 
-.. code-block:: console
+.. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme.xml')
