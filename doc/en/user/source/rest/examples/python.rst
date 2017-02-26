@@ -5,7 +5,7 @@ Python
 
 The examples in this section use `Python <https://www.python.org/>`_.
 Python's standard library includes the `urllib <https://docs.python.org/3/library/urllib.request.html>`_ modules for making HTTP requests, but these examples will instead employ the third-party `Requests <http://docs.python-requests.org/>`_ module, which is often installed in addition to your Python distribution.
-In addition, the standard library module `io <https://docs.python.org/3/library/io.html>`_, `os <https://docs.python.org/3/library/os.html>`_, and the third party library `lxml <http://lxml.de>`_ are used to process responses.
+In addition, the standard library module `os <https://docs.python.org/3/library/os.html>`_ and the third party library `lxml <http://lxml.de>`_ are used to process responses.
 These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wiki>`_. 
 
 .. todo::
@@ -23,7 +23,6 @@ The following code should be run before the examples.
 .. code-block:: console
 
    # Standard library imports
-   import io
    import os
 
    # Third party library imports
@@ -63,8 +62,8 @@ The workspace information can be retrieved as XML with a GET request:
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme.xml')
    r = s.get(url)
-   doc = etree.parse(io.BytesIO(r.content))
-   etree.dump(doc.getroot())
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
 
 The response should look like this:
 
@@ -126,8 +125,8 @@ The store information can be retrieved as XML with a GET request:
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/roads.xml')
    r = s.get(url)
-   doc = etree.parse(io.BytesIO(r.content))
-   etree.dump(doc.getroot())
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
 
 The response should look like this:
 
@@ -161,8 +160,8 @@ a GET request:
           '/workspaces/acme/datastores/roads'
           '/featuretypes/roads.xml')
    r = s.get(url)                                                                  
-   doc = etree.parse(io.BytesIO(r.content))                                        
-   etree.dump(doc.getroot())                                                       
+   doc = etree.fromstring(r.content)                                        
+   etree.dump(doc)                                                       
 
 If executed correctly, the response will be:
 
@@ -307,8 +306,8 @@ The coveragestore information can be retrieved as XML with a GET request:
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/coveragestores/Baltic.xml')
    r = s.get(url)
-   doc = etree.parse(io.BytesIO(r.content))
-   etree.dump(doc.getroot())
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
 
 Adding a PostGIS database
 -------------------------
