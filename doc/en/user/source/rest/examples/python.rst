@@ -12,7 +12,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Deleting a workspace/store/featuretype/style/layergroup
+   * Deleting a store/featuretype/style/layergroup
    * Renaming a workspace/store/featuretype/style/layergroup
    * Configuring an available coverage
    * Uploading an app-schema mapping file
@@ -22,7 +22,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
    * Creating a layer group
-   * Retrieving manifests
    * Filtering over resource name
    * Filtering over resource properties
    * Uploading and modifying a image mosaic
@@ -485,6 +484,23 @@ The response will look something like this:
        <Git-Revision>1.10.x/0355b0eb5a5f2a95f387ce5c30cdf2548ffb1744</Git-Revision>
      </resource>
    </about>
+
+Retrieving manifests
+--------------------
+
+This collection of examples shows how to retrieve the full manifest
+and subsets of the manifest as known to the ClassLoader.
+
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/about/manifest.xml'
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
+The result will be a very long list of manifest information. While
+this can be useful, it is often desirable to filter this list.
 
 Creating an empty mosaic and harvest granules
 ---------------------------------------------
