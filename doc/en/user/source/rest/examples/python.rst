@@ -36,11 +36,12 @@ The following code should be run before the examples.
 Adding a new workspace
 ----------------------
 
-The following creates a new workspace named "acme" with a POST request:
+The following creates a new workspace named ``acme`` with a POST request:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces.xml'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces.xml')
    headers = {'Content-Type': 'text/xml'}
    data = "<workspace><name>acme</name></workspace>"
    r = s.post(url, headers=headers, data=data)
@@ -59,7 +60,8 @@ The workspace information can be retrieved as XML with a GET request:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme.xml'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme.xml')
    r = s.get(url)
    doc = etree.parse(io.BytesIO(r.content))
    etree.dump(doc.getroot())
@@ -71,13 +73,25 @@ The response should look like this:
    <workspace>
      <name>acme</name>
      <dataStores>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores.xml" type="application/xml"/>
+       <atom:link
+          xmlns:atom="http://www.w3.org/2005/Atom"
+          rel="alternate"
+          href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores.xml"
+          type="application/xml"/>
      </dataStores>
      <coverageStores>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores.xml" type="application/xml"/>
+       <atom:link
+          xmlns:atom="http://www.w3.org/2005/Atom"
+          rel="alternate"
+          href="http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores.xml"
+          type="application/xml"/>
      </coverageStores>
      <wmsStores>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/wmsstores.xml" type="application/xml"/>
+       <atom:link
+          xmlns:atom="http://www.w3.org/2005/Atom"
+          rel="alternate"
+          href="http://localhost:8080/geoserver/rest/workspaces/acme/wmsstores.xml"
+          type="application/xml"/>
      </wmsStores>
    </workspace>
 
@@ -88,11 +102,13 @@ Uploading a shapefile
 
 In this example a new store will be created by uploading a shapefile.
 
-The following request uploads a zipped shapefile named ``roads.zip`` and creates a new store named ``roads``.
+The following request uploads a zipped shapefile named ``roads.zip``
+and creates a new store named ``roads``.
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads/file.shp'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/roads/file.shp')
    headers = {'Content-Type': 'application/zip'}
    with open('roads.zip', 'rb') as f:
        data = f.read()
@@ -107,7 +123,8 @@ The store information can be retrieved as XML with a GET request:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads.xml'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/roads.xml')
    r = s.get(url)
    doc = etree.parse(io.BytesIO(r.content))
    etree.dump(doc.getroot())
@@ -134,11 +151,15 @@ The response should look like this:
      </featureTypes>
    </dataStore>
 
-By default when a shapefile is uploaded, a feature type is automatically created. The feature type information can be retrieved as XML with a GET request:
+By default when a shapefile is uploaded, a feature type is automatically
+created. The feature type information can be retrieved as XML with
+a GET request:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080geoserver/rest/workspaces/acme/datastores/roadsfeaturetypes/roads.xml'
+   url = ('http://localhost:8080geoserver/rest'
+          '/workspaces/acme/datastores/roads'
+          '/featuretypes/roads.xml')
    r = s.get(url)                                                                  
    doc = etree.parse(io.BytesIO(r.content))                                        
    etree.dump(doc.getroot())                                                       
@@ -165,11 +186,14 @@ In the previous example a shapefile was uploaded directly to GeoServer
 by sending a zip file in the body of a PUT request. This example shows
 how to publish a shapefile that already exists on the server.
 
-Consider a directory ``/data/rivers`` that contains the shapefile ``rivers.shp``. The following adds a new store for the shapefile:
+Consider a directory ``/data/rivers`` that contains the shapefile
+``rivers.shp``. The following adds a new store for the shapefile:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/rivers/external.shp'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme'
+          '/datastores/rivers/external.shp')
    headers = {'Content-Type': 'text/plain'}
    data = "file:///data/rivers/rivers.shp"
    r = s.put(url, headers=headers, data=data)
@@ -189,7 +213,8 @@ its contents, execute a GET request for HTML:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/rivers.html'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/rivers.html')
    r = s.get(url)
    doc = etree.HTML(r.content)
    etree.dump(doc)
@@ -206,7 +231,9 @@ multiple shapefiles. The following adds a new store for the directory.
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/shapefiles/external.shp?configure=all'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme'
+          '/datastores/shapefiles/external.shp?configure=all')
    headers = {'Content-Type': 'text/plain'}
    data = "file:///data/shapefiles/"
    r = s.put(url, headers=headers, data=data)
@@ -225,7 +252,8 @@ its contents, execute a GET request for HTML:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/shapefiles.html'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/shapefiles.html')
    r = s.get(url)
    doc = etree.HTML(r.content)
    etree.dump(doc)
@@ -235,19 +263,20 @@ Adding a GeoTIFF Raster
 
 This example shows how to load and create a store that contains a GeoTIFF.
 Consider a GeoTIFF on the server ``/data/rasters/Baltic.tif``.  
-First create a coveragestore for it.
+First create a coveragestore for it:
 
 .. code-block:: console
 
-url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores'
-data = """<coverageStore>
-            <name>Baltic</name>
-            <workspace>acme</workspace>
-            <enabled>true</enabled>
-          </coverageStore>"""
-headers = {'Content-Type': 'text/xml'}
-r = s.post(url, headers=headers, data=data)
-print(r)
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/coveragestores')
+   data = """<coverageStore>
+               <name>Baltic</name>
+               <workspace>acme</workspace>
+               <enabled>true</enabled>
+             </coverageStore>"""
+   headers = {'Content-Type': 'text/xml'}
+   r = s.post(url, headers=headers, data=data)
+   print(r)
 
 If executed correctly, the response should contain the following::
  
@@ -257,7 +286,9 @@ Now load the GeoTIFF itself.
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores/Baltic/external.geotiff'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme'
+          '/coveragestores/Baltic/external.geotiff')
    headers = {'Content-Type': 'text/plain'}
    data = "file:///data/rasters/Baltic_sea.tif"
    r = s.put(url, headers=headers, data=data)
@@ -273,10 +304,90 @@ The coveragestore information can be retrieved as XML with a GET request:
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores/Baltic.xml'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/coveragestores/Baltic.xml')
    r = s.get(url)
    doc = etree.parse(io.BytesIO(r.content))
    etree.dump(doc.getroot())
+
+Adding a PostGIS database
+-------------------------
+
+In this example a PostGIS database named ``nyc`` will be added as
+a new store. This section assumes that a PostGIS database named
+``nyc`` is present on the local system and is accessible by the
+user ``bob``.
+
+.. code-block:: console
+
+   data = """<dataStore>                                                              
+     <name>nyc</name>                                                                 
+     <connectionParameters>                                                           
+       <host>localhost</host>                                                         
+       <port>5432</port>                                                              
+       <database>nyc</database>                                                       
+       <user>bob</user>                                                               
+       <passwd>postgres</passwd>                                                      
+       <dbtype>postgis</dbtype>                                                       
+     </connectionParameters>                                                          
+   </dataStore>"""                                                                    
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores')
+   headers = {'Content-Type': 'text/xml'}
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [201]>
+
+The store information can be retrieved as XML with a GET request:
+
+.. code-block:: console
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/nyc.xml')
+   r = s.get(url)                                                                     
+   doc = etree.fromstring(r.content)                                           
+   etree.dump(doc)  
+
+The store information can be retrieved as XML with a GET request:
+
+.. code-block:: console
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/nyc.xml')
+   r = s.get(url)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+The response should look like the following:
+
+.. code-block:: xml
+
+   <dataStore>
+     <name>nyc</name>
+     <type>PostGIS</type>
+     <enabled>true</enabled>
+     <workspace>
+       <name>acme</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme.xml" type="application/xml"/>
+     </workspace>
+     <connectionParameters>
+       <entry key="database">nyc</entry>
+       <entry key="port">5432</entry>
+       <entry key="passwd">crypt1:iN+oI8QeT+R8tpecSoRLLGX+igST5oiy</entry>
+       <entry key="host">localhost</entry>
+       <entry key="dbtype">postgis</entry>
+       <entry key="namespace">http://acme</entry>
+       <entry key="user">bob</entry>
+     </connectionParameters>
+     <__default>false</__default>
+     <featureTypes>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores/nyc/featuretypes.xml" type="application/xml"/>
+     </featureTypes>
+   </dataStore>
+
 
 Deleting a workspace
 --------------------
@@ -287,7 +398,8 @@ be deleted.
 
 .. code-block:: console
 
-   url = 'http://localhost:8080/geoserver/rest/workspaces/acme.xml'
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme.xml')
    params = {'recurse': True}
    r = s.delete(url, params=params)
    print(r)
