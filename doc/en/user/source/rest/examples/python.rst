@@ -161,15 +161,17 @@ If executed correctly, the response will be:
 Adding an existing shapefile
 ----------------------------
 
-In the previous example a shapefile was uploaded directly to GeoServer by sending a zip file in the body of a PUT request. This example shows how to publish a shapefile that already exists on the server.
+In the previous example a shapefile was uploaded directly to GeoServer
+by sending a zip file in the body of a PUT request. This example shows
+how to publish a shapefile that already exists on the server.
 
-Consider a directory ``$HOME/data/shapefiles/rivers`` that contains the shapefile ``rivers.shp``. The following adds a new store for the shapefile:
+Consider a directory ``/data/rivers`` that contains the shapefile ``rivers.shp``. The following adds a new store for the shapefile:
 
 .. code-block:: console
 
    url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/rivers/external.shp'
    headers = {'Content-Type': 'text/plain'}
-   data = "file://" + os.environ['HOME'] + "/data/shapefiles/rivers/rivers.shp"
+   data = "file:///data/rivers/rivers.shp"
    r = s.put(url, headers=headers, data=data)
    print(r)
 
@@ -181,41 +183,68 @@ If executed correctly, the response should contain the following::
 
 The shapefile will be added to the existing store and published as a layer.
 
-To verify the contents of the store, execute a GET request. Since the XML response only provides details about the store itself without showing its contents, execute a GET request for HTML:
+To verify the contents of the store, execute a GET request.  Since the
+XML response only provides details about the store itself without showing
+its contents, execute a GET request for HTML:
 
 .. code-block:: console
 
    url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/rivers.html'
    r = s.get(url)
-   doc = etree.HTML(r.content.decode('utf-8'))
-   etree.dump(doc.getroot())
+   doc = etree.HTML(r.content)
+   etree.dump(doc)
 
 Adding a directory of existing shapefiles
 -----------------------------------------
 
-This example shows how to load and create a store that contains a number of shapefiles, all with a single operation. This example is very similar to the example above of adding a single shapefile.
+This example shows how to load and create a store that contains a number
+of shapefiles, all with a single operation. This example is very similar
+to the example above of adding a single shapefile.
 
-Consider a directory on the server ``$HOME/data/shapefiles`` that contains multiple shapefiles. The following adds a new store for the directory.
+Consider a directory on the server ``/data/shapefiles`` that contains
+multiple shapefiles. The following adds a new store for the directory.
 
 .. code-block:: console
 
    url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/shapefiles/external.shp?configure=all'
    headers = {'Content-Type': 'text/plain'}
-   data = "file://" + os.environ['HOME'] + "/data/shapefiles/"
+   data = "file:///data/shapefiles/"
    r = s.put(url, headers=headers, data=data)
    print(r)
 
-Note the ``configure=all`` query string parameter, which sets each shapefile in the directory to be loaded and published.
+Note the ``configure=all`` query string parameter, which sets each
+shapefile in the directory to be loaded and published.
 
 If executed correctly, the response should contain the following::
  
    <Response [201]>
 
-To verify the contents of the store, execute a GET request. Since the XML response only provides details about the store itself without showing its contents, execute a GET request for HTML:
+To verify the contents of the store, execute a GET request.  Since the
+XML response only provides details about the store itself without showing
+its contents, execute a GET request for HTML:
 
 .. code-block:: console
 
    url = 'http://localhost:8080/geoserver/rest/workspaces/acme/datastores/shapefiles.html'
    r = s.get(url)
-   doc = etree.HTML(r.content.decode('utf-8'))
-   etree.dump(doc.getroot())
+   doc = etree.HTML(r.content)
+   etree.dump(doc)
+
+Deleting a workspace
+--------------------
+
+This example shows how to delete a workspace and all its contents.
+The "acme" store that has been populated throught these examples will
+be deleted.
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme.xml'
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
