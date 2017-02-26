@@ -202,7 +202,7 @@ of shapefiles, all with a single operation. This example is very similar
 to the example above of adding a single shapefile.
 
 Consider a directory on the server ``/data/shapefiles`` that contains
-multiple shapefiles. The following adds a new store for the directory.
+multiple shapefiles. The following adds a new store for the directory:
 
 .. code-block:: console
 
@@ -230,24 +230,24 @@ its contents, execute a GET request for HTML:
    doc = etree.HTML(r.content)
    etree.dump(doc)
 
-Adding a GeoTIFF Raster
+Adding a GeoTIFF raster
 -----------------------
 
 This example shows how to load and create a store that contains a GeoTIFF.
 Consider a GeoTIFF on the server ``/data/rasters/Baltic.tif``.  
-First create a coveragestore for it.
+First create a coveragestore for it:
 
 .. code-block:: console
 
-url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores'
-data = """<coverageStore>
-            <name>Baltic</name>
-            <workspace>acme</workspace>
-            <enabled>true</enabled>
-          </coverageStore>"""
-headers = {'Content-Type': 'text/xml'}
-r = s.post(url, headers=headers, data=data)
-print(r)
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores'
+   data = """<coverageStore>
+               <name>Baltic</name>
+               <workspace>acme</workspace>
+               <enabled>true</enabled>
+             </coverageStore>"""
+   headers = {'Content-Type': 'text/xml'}
+   r = s.post(url, headers=headers, data=data)
+   print(r)
 
 If executed correctly, the response should contain the following::
  
