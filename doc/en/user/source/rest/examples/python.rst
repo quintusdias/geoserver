@@ -230,6 +230,54 @@ its contents, execute a GET request for HTML:
    doc = etree.HTML(r.content)
    etree.dump(doc)
 
+Adding a GeoTIFF Raster
+-----------------------
+
+This example shows how to load and create a store that contains a GeoTIFF.
+Consider a GeoTIFF on the server ``/data/rasters/Baltic.tif``.  
+First create a coveragestore for it.
+
+.. code-block:: console
+
+url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores'
+data = """<coverageStore>
+            <name>Baltic</name>
+            <workspace>acme</workspace>
+            <enabled>true</enabled>
+          </coverageStore>"""
+headers = {'Content-Type': 'text/xml'}
+r = s.post(url, headers=headers, data=data)
+print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [201]>
+
+Now load the GeoTIFF itself.
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores/Baltic/external.geotiff'
+   headers = {'Content-Type': 'text/plain'}
+   data = "file:///data/rasters/Baltic_sea.tif"
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [201]>
+
+The raster will be added to the existing store and published as a layer.
+
+The coveragestore information can be retrieved as XML with a GET request:
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/coveragestores/Baltic.xml'
+   r = s.get(url)
+   doc = etree.parse(io.BytesIO(r.content))
+   etree.dump(doc.getroot())
+
 Deleting a workspace
 --------------------
 
