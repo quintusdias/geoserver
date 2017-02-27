@@ -651,32 +651,39 @@ This archive contains the definition of an empty mosaic (no granules in this cas
       polyphemus-test.xml (The auxiliary file used by the NetCDF reader to parse schemas and tables)
 
 .. note:: **Make sure to update the datastore.properties file** with your connection params and refresh the zip when done, before uploading it. 
-.. note:: The code blocks below contain a single command that is extended over multiple lines.
 .. note:: The configure=none parameter allows for future configuration after harvesting
+.. note:: You must have the NetCDF plugin installed
 
 .. code-block:: python
 
-   url = ('http://localhost:8080/geoserver/rest'                                   
-          '/workspaces/topp'
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
           '/coveragestores/empty/file.imagemosaic?configure=none') 
    headers = { 'Content-Type': 'application/zip', }                                
    with open('empty.zip', 'rb') as f:                                         
        data = f.read()                                                             
    r = s.put(url, headers=headers, data=data)                                      
-   r.raise_for_status()                                                            
    print(r)  
 
-The following instead instructs the mosaic to harvest a single :download:`polyphemus_20120401.nc` file into the mosaic, collecting its properties and updating the mosaic index:
+If executed correctly, the output should contain the following::
+
+   <Response [201]>
+
+The following instead instructs the mosaic to harvest a single
+:download:`polyphemus_20120401.nc` file into the mosaic, collecting its
+properties and updating the mosaic index:
 
 .. code-block:: python
 
-   url = ('http://localhost:8080/geoserver/rest'                                   
-          '/workspaces/topp'
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
           '/coveragestores/empty/external.imagemosaic') 
    headers = { 'Content-Type': 'text/plain', }                                
    data = "file:///path/to/polyphemus_20120401.nc"
    r = s.post(url, headers=headers, data=data)                                      
    print(r) 
+
+If executed correctly, the output should contain the following::
+
+   <Response [202]>
 
 Once done you can get the list of coverages/granules available on that store.
 
@@ -697,6 +704,45 @@ which will result in the following:
         <coverageName>NO2</coverageName>
         <coverageName>O3</coverageName>
       </list>
+
+Next step is configuring ONCE for coverage (as an instance NO2), an available coverage.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages')
+   headers = {'Content-Type': 'text/xml'}
+   data = """<coverage>
+               <nativeCoverageName>NO2</nativeCoverageName>
+               <name>NO2</name>
+             </coverage>"""
+   r = s.post(url, header=headers, data=data)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+If executed correctly, the output should contain the following::
+
+   <Response [201]>
+
+The image mosaic index structure can then be retrieved using something like:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages/NO2.xml')
+   r = s.get(url)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+.. code-block:: xml
+
+   <coverages>
+     <coverage>
+       <name>NO2</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/empty/coveragestores/empty/coverages/NO2/NO2.xml" type="application/xml"/>
+     </coverage>
+   </coverages>
+
 
 
 Deleting a workspace
