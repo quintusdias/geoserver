@@ -5,7 +5,7 @@ Python
 
 The examples in this section use `Python <https://www.python.org/>`_.
 Python's standard library includes the `urllib <https://docs.python.org/3/library/urllib.request.html>`_ modules for making HTTP requests, but these examples will instead employ the third-party `Requests <http://docs.python-requests.org/>`_ module, which is often installed in addition to your Python distribution.
-In addition, the standard library module `os <https://docs.python.org/3/library/os.html>`_ and the third party library `lxml <http://lxml.de>`_ are used to process responses.
+In addition, the third party library `lxml <http://lxml.de>`_ is used to process responses.
 These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wiki>`_. 
 
 .. todo::
