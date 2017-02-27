@@ -22,10 +22,9 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
    * Creating a layer group
-   * Filtering over resource name
-   * Filtering over resource properties
    * Uploading and modifying a image mosaic
-   * Master Password Change
+   * Changing the catalog mode
+   * Working with access control rules
 
 Setup
 ----------------------
@@ -502,6 +501,103 @@ and subsets of the manifest as known to the ClassLoader.
 The result will be a very long list of manifest information. While
 this can be useful, it is often desirable to filter this list.
 
+Filtering over resource name
+----------------------------
+
+It is possible to filter over resource names using regular expressions.
+This example will retrieve only resources where the ``name`` attribute
+matches ``gwc-.*``:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/about/manifest.xml'
+   params = {'manifest': 'gwc-.*'}
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
+The result will look something like this (edited for brevity):
+
+.. code-block:: xml
+
+   <about>
+     <resource name="gwc-core-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-diskquota-core-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-diskquota-jdbc-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-georss-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-gmaps-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-kml-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-rest-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-tms-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-ve-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-wms-1.10.1">
+        ...
+     </resource>
+     <resource name="gwc-wmts-1.10.1">
+        ...
+     </resource>
+   </about>
+
+Filtering over resource properties
+----------------------------------
+
+Filtering is also available over resulting resource properties.
+This example will retrieve only resources with a property equal to
+``GeoServerModule``.
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/about/manifest.xml'
+   params = {'key': 'GeoServerModule'}
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
+The result will look something like this (edited for brevity):
+
+.. code-block:: xml
+
+   <about>
+      <resource name="gs-gwc-2.10.1">
+          <GeoServerModule>core</GeoServerModule>
+          ...
+      </resource>
+   </about>
+
+It is also possible to filter against both property and value. To
+retrieve only resources where a property named ``GeoServerModule``
+has a value equal to ``extension``, include a suitable keyword/value pair
+in the request parameters.
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/about/manifest.xml'
+   params = {
+       'key': 'GeoServerModule'
+       'Implementation-Title': 'GeoWebCache (GWC) Module',
+   }
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)
+   etree.dump(doc) 
+
 Creating an empty mosaic and harvest granules
 ---------------------------------------------
 
@@ -580,3 +676,28 @@ If executed correctly, the response should contain the following::
  
    <Response [200]>
 
+Master Password Change
+----------------------
+
+The master password can be fetched wit a GET request.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/security/masterpw.xml')
+   r = s.get(url)    
+   print(r.content)
+
+The master password can be changed with a PUT request:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/security/masterpw.xml')
+   headers = {'Content-Type': 'text/xml'}
+   data = """<masterPassword>
+      <oldMasterPassword>geoserver</oldMasterPassword>
+      <newMasterPassword>geoserver1</newMasterPassword>
+   </masterPassword>"""
+   r = s.put(url, header=headers, data=data)
+   print(r)
