@@ -17,7 +17,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Configuring an available coverage
    * Uploading an app-schema mapping file
    * Uploading multiple app-schema mapping files
-   * Creating a layer style
    * Changing a layer style
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
@@ -320,6 +319,52 @@ The coveragestore information can be retrieved as XML with a GET request:
    r = s.get(url)
    doc = etree.fromstring(r.content)
    etree.dump(doc)
+
+Creating a layer style
+----------------------
+
+This example will create a new style on the server and populate it the contents of a local SLD file.
+
+The following creates a new style named ``roads_style``:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/styles'
+   headers = {'Content-Type': 'text/xml'}
+   data = "<style><name>roads_style</name><filename>roads.sld</filename></style>"
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [201]>
+
+This request uploads a file called :file:`roads.sld` file and populates the ``roads_style`` with its contents:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/styles/roads_style'
+   headers = {'Content-Type': 'application/vnd.ogc.sld+xml'}
+   with open('roads.sld', 'rb') as f:
+       data = f.read()
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+The SLD itself can be downloaded through a a GET request:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/styles/roads_style.sld'
+   r = s.get(url)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
 
 Adding a PostGIS database
 -------------------------
