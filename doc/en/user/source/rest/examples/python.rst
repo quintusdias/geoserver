@@ -21,7 +21,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
    * Creating a layer group
-   * Uploading and modifying a image mosaic
+   * Uploading and modifying a image mosaic for a directory
    * Changing the catalog mode
    * Working with access control rules
 
@@ -743,7 +743,209 @@ The image mosaic index structure can then be retrieved using something like:
      </coverage>
    </coverages>
 
+Uploading and modifying a image mosaic
+--------------------------------------
 
+The following command uploads a zip file containing the definition of
+a mosaic (along with at least one granule of the mosaic to initialize
+the resolutions, overviews and the like) and will configure all the
+coverages in it as new layers.
+
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/polyphemus/file.imagemosaic') 
+   headers = { 'Content-Type': 'application/zip' }                                
+   with open('polyphemus.zip', 'rb') as f:
+       data = f.read()
+   r = s.put(url, headers=headers, data=data)                                      
+   print(r) 
+
+If executed correctly, the output should contain the following::
+
+   <Response [201]>
+
+The following instead instructs the mosaic to harvest (or re-harvest)
+a single file into the mosaic, collecting its properties and updating
+the mosaic index:
+
+.. code-block:: console
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/polyphemus/external.imagemosaic')
+   headers = { 'Content-Type': 'text/plain' }                                
+   data = "file:///path/to/the/file/polyphemus_20130302.nc"
+   r = s.post(url, headers=headers, data=data)                                      
+   print(r) 
+
+If executed correctly, the output should contain the following::
+
+   <Response [202]>
+
+The image mosaic index structure can be retrieved using something like:
+
+.. code-block:: console
+
+   curl -v -u admin:geoserver -XGET "http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/polyphemus-v1/coverages/NO2/index.xml"
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/polyphemus/coverages/NO2/index.xml')
+   r = s.get(url)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+If executed correctly, the output should contain the following::
+
+which will result in the following:
+
+.. code-block:: xml
+
+   <Schema>
+     <attributes>
+       <Attribute>
+         <name>the_geom</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>com.vividsolutions.jts.geom.Polygon</binding>
+       </Attribute>
+       <Attribute>
+         <name>location</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.lang.String</binding>
+       </Attribute>
+       <Attribute>
+         <name>imageindex</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.lang.Integer</binding>
+       </Attribute>
+       <Attribute>
+         <name>time</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.sql.Timestamp</binding>
+       </Attribute>
+       <Attribute>
+         <name>elevation</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.lang.Double</binding>
+       </Attribute>
+       <Attribute>
+         <name>fileDate</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.sql.Timestamp</binding>
+       </Attribute>
+       <Attribute>
+         <name>updated</name>
+         <minOccurs>0</minOccurs>
+         <maxOccurs>1</maxOccurs>
+         <nillable>true</nillable>
+         <binding>java.sql.Timestamp</binding>
+       </Attribute>
+     </attributes>
+     <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/polyphemus/coverages/NO2/index/granules.xml" type="application/xml"/>
+   </Schema>
+
+
+Listing the existing granules can be performed as follows:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/polyphemus'
+          '/coverages/NO2/index/granules.xml')
+   params = { 'limit': 2 }
+   r = s.get(url, params=params)                                      
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+This will result in a GML description of the granules, as follows:
+
+.. code-block:: xml
+
+   <wfs:FeatureCollection xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:gf="http://www.geoserver.org/rest/granules" xmlns:wfs="http://www.opengis.net/wfs" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc">
+     <gml:boundedBy>
+       <gml:Box srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+         <gml:coord>
+           <gml:X>4.9375</gml:X>
+           <gml:Y>44.9375</gml:Y>
+         </gml:coord>
+         <gml:coord>
+           <gml:X>14.9375</gml:X>
+           <gml:Y>50.9375</gml:Y>
+         </gml:coord>
+       </gml:Box>
+     </gml:boundedBy>
+     <gml:featureMember>
+       <gf:NO2 fid="NO2.1">
+         <gml:boundedBy>
+           <gml:Box srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+             <gml:coordinates>4.9375,44.9375 14.9375,50.9375</gml:coordinates>
+           </gml:Box>
+         </gml:boundedBy>
+         <gf:the_geom>
+           <gml:Polygon srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+             <gml:outerBoundaryIs>
+               <gml:LinearRing>
+                 <gml:coordinates>4.9375,44.9375 4.9375,50.9375 14.9375,50.9375 14.9375,44.9375 4.9375,44.9375</gml:coordinates>
+               </gml:LinearRing>
+             </gml:outerBoundaryIs>
+           </gml:Polygon>
+         </gf:the_geom>
+         <gf:location>/export/nco-lw-jevans2/jevans/local/apache-tomcat-8.5.11/webapps/geoserver/data/data/topp/polyphemus/polyphemus_20120401.nc</gf:location>
+         <gf:imageindex>4</gf:imageindex>
+         <gf:time>2012-04-01T00:00:00Z</gf:time>
+         <gf:elevation>10.0</gf:elevation>
+         <gf:fileDate>2012-04-01T00:00:00Z</gf:fileDate>
+         <gf:updated>2017-02-27T21:08:51Z</gf:updated>
+       </gf:NO2>
+     </gml:featureMember>
+     <gml:featureMember>
+       <gf:NO2 fid="NO2.2">
+         <gml:boundedBy>
+           <gml:Box srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+             <gml:coordinates>4.9375,44.9375 14.9375,50.9375</gml:coordinates>
+           </gml:Box>
+         </gml:boundedBy>
+         <gf:the_geom>
+           <gml:Polygon srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+             <gml:outerBoundaryIs>
+               <gml:LinearRing>
+                 <gml:coordinates>4.9375,44.9375 4.9375,50.9375 14.9375,50.9375 14.9375,44.9375 4.9375,44.9375</gml:coordinates>
+               </gml:LinearRing>
+             </gml:outerBoundaryIs>
+           </gml:Polygon>
+         </gf:the_geom>
+         <gf:location>/export/nco-lw-jevans2/jevans/local/apache-tomcat-8.5.11/webapps/geoserver/data/data/topp/polyphemus/polyphemus_20120401.nc</gf:location>
+         <gf:imageindex>5</gf:imageindex>
+         <gf:time>2012-04-01T00:00:00Z</gf:time>
+         <gf:elevation>450.0</gf:elevation>
+         <gf:fileDate>2012-04-01T00:00:00Z</gf:fileDate>
+         <gf:updated>2017-02-27T21:08:51Z</gf:updated>
+       </gf:NO2>
+     </gml:featureMember>
+   </wfs:FeatureCollection>
+   
+Removing all the granules originating from a particular file (a NetCDF file can contain many) can be done as follows:
+
+.. code-block:: console
+   
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/topp/coveragestores/polyphemus'
+          '/coverages/NO2/index/granules.xml')
+   params = {'filter': "location='polyphemus_20130302.nc'"}
+   r = s.delete(url, params=params)
+   print(r)
+   
 
 Deleting a workspace
 --------------------
