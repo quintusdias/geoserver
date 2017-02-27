@@ -28,12 +28,11 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 Setup
 ----------------------
 
-The following code should be run before the examples.
+The following code should be run before the examples.  It sets up an
+authenticated session so that credentials do not need to be continually
+passed into requests, as well as making the lxml module available.
 
 .. code-block:: python
-
-   # Standard library imports
-   import os
 
    # Third party library imports
    import requests
@@ -49,8 +48,7 @@ The following creates a new workspace named ``acme`` with a POST request:
 
 .. code-block:: python
 
-   url = ('http://localhost:8080/geoserver/rest'
-          '/workspaces.xml')
+   url = 'http://localhost:8080/geoserver/rest/workspaces.xml'
    headers = {'Content-Type': 'text/xml'}
    data = "<workspace><name>acme</name></workspace>"
    r = s.post(url, headers=headers, data=data)
@@ -69,8 +67,7 @@ The workspace information can be retrieved as XML with a GET request:
 
 .. code-block:: python
 
-   url = ('http://localhost:8080/geoserver/rest'
-          '/workspaces/acme.xml')
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme.xml'
    r = s.get(url)
    doc = etree.fromstring(r.content)
    etree.dump(doc)
