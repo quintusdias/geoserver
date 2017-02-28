@@ -984,6 +984,24 @@ If executed correctly, the response should contain the following::
  
    <Response [200]>
 
+Deleting a coveragestore
+------------------------
+
+This example shows how to delete a coveragestore.
+The "polyphemus" store that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/topp/coveragestores/polyphemus.xml')
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
 Master Password Change
 ----------------------
 
