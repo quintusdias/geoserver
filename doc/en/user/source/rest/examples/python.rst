@@ -13,7 +13,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    The following extra sections could be added for completeness:
 
    * Deleting a style/layergroup
-   * Renaming a workspace/store/featuretype/style/layergroup
+   * Renaming a store/featuretype/style/layergroup
    * Configuring an available coverage
    * Uploading an app-schema mapping file
    * Uploading multiple app-schema mapping files
@@ -946,7 +946,6 @@ Removing all the granules originating from a particular file (a NetCDF file can 
    r = s.delete(url, params=params)
    print(r)
    
-
 Deleting a workspace
 --------------------
 
