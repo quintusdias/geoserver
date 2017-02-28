@@ -19,7 +19,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Uploading multiple app-schema mapping files
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
-   * Creating a layer group
    * Changing the catalog mode
    * Working with access control rules
 
@@ -590,6 +589,63 @@ The featuretype information can be retrieved as XML with a GET request:
    print(r)                                                                        
    doc = etree.fromstring(r.content)
    etree.dump(doc) 
+
+Creating a layer group
+----------------------
+
+In this example a layer group will be created, based on layers that already exist on the server.
+
+The following request creates the new layer group:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/topp/layergroups'
+   headers = {'Content-Type': 'text/xml'}
+   data = """
+       <layerGroup>
+         <name>grand_tasmania</name>
+         <mode>SINGLE</mode>
+         <title>Make Tasmania Great Again</title>
+         <abstractTxt>stuff goes here</abstractTxt>
+         <workspace>
+           <name>topp</name>
+         </workspace>
+         <publishables>
+           <published type="layer">
+             <name>tasmania_state_boundaries</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_water_bodies</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_cities</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_roads</name>
+           </published>
+         </publishables>
+         <styles>
+           <style>
+             <name>green</name>
+           </style>
+           <style>
+             <name>cite_lakes</name>
+           </style>
+           <style>
+             <name>capitals</name>
+           </style>
+           <style>
+             <name>simple_roads</name>
+           </style>
+         </styles>
+       </layerGroup>
+       """
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+This layer group can be viewed with a WMS GetMap request::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=grand_tasmania
 
 Retrieving component versions
 -----------------------------
