@@ -12,7 +12,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Deleting a store/featuretype/style/layergroup
+   * Deleting a featuretype/style/layergroup
    * Renaming a workspace/store/featuretype/style/layergroup
    * Configuring an available coverage
    * Uploading an app-schema mapping file
@@ -139,23 +139,24 @@ The response should look like this:
 
 .. code-block:: xml
 
-   <dataStore>
-     <name>roads</name>
-     <type>Shapefile</type>
-     <enabled>true</enabled>
-     <workspace>
-       <name>acme</name>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme.xml" type="application/xml"/>
-     </workspace>
-     <connectionParameters>
-       <entry key="namespace">http://acme</entry>
-       <entry key="url">file:/var/lib/tomcat/webapps/geoserver/data/data/acme/roads/</entry>
-     </connectionParameters>
-     <__default>false</__default>
-     <featureTypes>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads/featuretypes.xml" type="application/xml"/>
-     </featureTypes>
-   </dataStore>
+  <dataStore>
+    <name>roads</name>
+    <type>Shapefile</type>
+    <enabled>true</enabled>
+    <workspace>
+      <name>acme</name>
+      <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme.xml" type="application/xml"/>
+    </workspace>
+    <connectionParameters>
+      <entry key="namespace">http://acme</entry>
+      <entry key="url">file:/somewhere/webapps/geoserver/data/data/acme/roads/</entry>
+    </connectionParameters>
+    <__default>false</__default>
+    <featureTypes>
+      <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads/featuretypes.xml" type="application/xml"/>
+    </featureTypes>
+  </dataStore>
+
 
 By default when a shapefile is uploaded, a feature type is automatically
 created. The feature type information can be retrieved as XML with
@@ -163,7 +164,7 @@ a GET request:
 
 .. code-block:: python
 
-   url = ('http://localhost:8080geoserver/rest'
+   url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/roads'
           '/featuretypes/roads.xml')
    r = s.get(url)                                                                  
@@ -957,6 +958,24 @@ be deleted.
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme.xml')
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a datastore
+--------------------
+
+This example shows how to delete a datastore.
+The "roads" store that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/roads.xml')
    params = {'recurse': True}
    r = s.delete(url, params=params)
    print(r)
