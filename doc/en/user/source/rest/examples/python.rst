@@ -17,7 +17,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
    * Configuring an available coverage
    * Uploading an app-schema mapping file
    * Uploading multiple app-schema mapping files
-   * Changing a layer style
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
    * Creating a layer group
@@ -361,6 +360,106 @@ The SLD itself can be downloaded through a a GET request:
 If executed correctly, the response should contain the following::
  
    <Response [200]>
+
+Changing a layer style
+----------------------
+
+This example will alter a layer style. Prior to making any changes,
+it is helpful to view the existing configuration for a given layer.
+
+The following retrieves the "acme:roads" layer information as XML:
+
+.. code-block:: console
+
+   curl -v -u admin:geoserver -XGET "http://localhost:8080/geoserver/rest/layers/acme:roads.xml"
+   url = ('http://localhost:8080/geoserver/rest'
+          '/layers/acme:roads.xml')
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)                                        
+   etree.dump(doc)                                                       
+
+If executed correctly, the response will be:
+
+The response in this case would be: 
+
+.. code-block:: xml
+
+   <layer>
+     <name>roads</name>
+     <type>VECTOR</type>
+     <defaultStyle>
+       <name>line</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" 
+        href="http://localhost:8080/geoserver/rest/styles/line.xml" type="application/xml"/>
+     </defaultStyle>
+     <resource class="featureType">
+       <name>roads</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" 
+        href="http://localhost:8080/geoserver/rest/workpaces/acme/datastores/roads/featuretypes/roads.xml" 
+        type="application/xml"/>
+     </resource>
+     <enabled>true</enabled>
+     <attribution>
+       <logoWidth>0</logoWidth>
+       <logoHeight>0</logoHeight>
+     </attribution>
+   </layer>
+
+When the layer is created, GeoServer assigns a default style to the layer that matches the geometry of the layer. In this case a style named ``line`` is assigned to the layer. This style can viewed with a WMS request::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=acme:roads
+
+In this next example a new style will be created called ``roads_style`` and assigned to the "acme:roads" layer:
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/layers/acme:roads'
+   headers = {'Content-Type': 'text/xml'}
+   data = "<layer><defaultStyle><name>roads_style</name></defaultStyle></layer>" 
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+
+   <Response [200]>
+
+The new style can be viewed with the same WMS request as above::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=acme:roads
+
+Note that if you want to upload the style in a workspace (ie, not making it a global style),
+and then assign this style to a layer in that workspace, you need first to create the style in the given workspace::
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/styles'
+   headers = {'Content-Type': 'text/xml'}
+   data = '<style><name>roads_style</name><filename>roads.sld</filename></style>' 
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+Upload the file within the workspace::
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/styles/roads_style'
+   headers = {'Content-Type': 'application/vnd.ogc.sld+xml'}
+   with open('roads.sld', 'rb') as f:
+       data = f.read()
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+And finally apply that style to the layer. Note the use of the ``<workspace>`` tag in the XML::
+
+   url = 'http://localhost:8080/geoserver/rest/layers/acme:roads'
+   headers = {'Content-Type': 'text/xml'}
+   data = """
+       <layer>
+           <defaultStyle>
+               <name>roads_style</name>
+               <workspace>acme</workspace>
+           </defaultStyle>
+       </layer>"""
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+.. todo:: The WMS request above results in an "Internal error featureType: acme:roads does not have a properly configured datastore"  Tested on 2.2.2.
 
 Adding a PostGIS database
 -------------------------
