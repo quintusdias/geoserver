@@ -12,7 +12,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Deleting a style/layergroup
+   * Deleting a style
    * Renaming a store/featuretype/style/layergroup
    * Configuring an available coverage
    * Uploading an app-schema mapping file
@@ -699,7 +699,7 @@ The result will be a very long list of manifest information. While
 this can be useful, it is often desirable to filter this list.
 
 Filtering over resource name
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is possible to filter over resource names using regular expressions.
 This example will retrieve only resources where the ``name`` attribute
@@ -754,7 +754,7 @@ The result will look something like this (edited for brevity):
    </about>
 
 Filtering over resource properties
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Filtering is also available over resulting resource properties.
 This example will retrieve only resources with a property equal to
@@ -1182,6 +1182,23 @@ The "roads" feature type that was created in an earlier example will be deleted.
           '/featuretypes/roads')
    params = {'recurse': True}
    r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a layer group
+----------------------
+
+This example shows how to delete a layer group.
+The "grand_tasmania" layer group type that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/topp/layergroups/grand_tasmania')
+   r = s.delete(url)
    print(r)
 
 If executed correctly, the response should contain the following::
