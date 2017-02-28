@@ -716,9 +716,8 @@ Next step is configuring ONCE for coverage (as an instance NO2), an available co
                <nativeCoverageName>NO2</nativeCoverageName>
                <name>NO2</name>
              </coverage>"""
-   r = s.post(url, header=headers, data=data)
-   doc = etree.fromstring(r.content)
-   etree.dump(doc)
+   r = s.post(url, headers=headers, data=data)
+   print(r)
 
 If executed correctly, the output should contain the following::
 
