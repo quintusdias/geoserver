@@ -12,7 +12,6 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Deleting a style
    * Renaming a store/featuretype/style/layergroup
    * Configuring an available coverage
    * Uploading an app-schema mapping file
@@ -458,7 +457,24 @@ And finally apply that style to the layer. Note the use of the ``<workspace>`` t
    r = s.put(url, headers=headers, data=data)
    print(r)
 
-.. todo:: The WMS request above results in an "Internal error featureType: acme:roads does not have a properly configured datastore"  Tested on 2.2.2.
+Deleting a layer style
+----------------------
+
+This example will delete the ``roads_style`` created in a previous example.
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/styles/roads_style'
+   r = s.delete(url)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Note that this deleted the global style, not the style associated with ``acme:road`` by the same name.
+.. todo::
+  
 
 Adding a PostGIS database
 -------------------------
