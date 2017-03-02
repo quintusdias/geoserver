@@ -12,8 +12,7 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Renaming a store/featuretype/style/layergroup
-   * Configuring an available coverage
+   * Renaming a store/featuretype/style
    * Uploading an app-schema mapping file
    * Uploading multiple app-schema mapping files
    * Creating a layer style (SLD package)
@@ -313,8 +312,11 @@ The coveragestore information can be retrieved as XML with a GET request:
    doc = etree.fromstring(r.content)
    etree.dump(doc)
 
+Styles
+------
+
 Creating a layer style
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 This example will create a new style on the server and populate it the contents of a local SLD file.
 
@@ -360,7 +362,7 @@ If executed correctly, the response should contain the following::
    <Response [200]>
 
 Changing a layer style
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 This example will alter a layer style. Prior to making any changes,
 it is helpful to view the existing configuration for a given layer.
@@ -458,7 +460,7 @@ And finally apply that style to the layer. Note the use of the ``<workspace>`` t
    print(r)
 
 Deleting a layer style
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 This example will delete the ``roads_style`` created in a previous example.
 
