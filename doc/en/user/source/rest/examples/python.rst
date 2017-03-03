@@ -12,16 +12,11 @@ These examples do not use `gsconfig.py <https://github.com/dwins/gsconfig.py/wik
 
    The following extra sections could be added for completeness:
 
-   * Deleting a store/featuretype/style/layergroup
-   * Renaming a workspace/store/featuretype/style/layergroup
-   * Configuring an available coverage
+   * Renaming a store/featuretype/style
    * Uploading an app-schema mapping file
    * Uploading multiple app-schema mapping files
-   * Changing a layer style
    * Creating a layer style (SLD package)
    * Adding a PostGIS table
-   * Creating a layer group
-   * Uploading and modifying a image mosaic for a directory
    * Changing the catalog mode
    * Working with access control rules
 
@@ -139,23 +134,24 @@ The response should look like this:
 
 .. code-block:: xml
 
-   <dataStore>
-     <name>roads</name>
-     <type>Shapefile</type>
-     <enabled>true</enabled>
-     <workspace>
-       <name>acme</name>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme.xml" type="application/xml"/>
-     </workspace>
-     <connectionParameters>
-       <entry key="namespace">http://acme</entry>
-       <entry key="url">file:/var/lib/tomcat/webapps/geoserver/data/data/acme/roads/</entry>
-     </connectionParameters>
-     <__default>false</__default>
-     <featureTypes>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads/featuretypes.xml" type="application/xml"/>
-     </featureTypes>
-   </dataStore>
+  <dataStore>
+    <name>roads</name>
+    <type>Shapefile</type>
+    <enabled>true</enabled>
+    <workspace>
+      <name>acme</name>
+      <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme.xml" type="application/xml"/>
+    </workspace>
+    <connectionParameters>
+      <entry key="namespace">http://acme</entry>
+      <entry key="url">file:/somewhere/webapps/geoserver/data/data/acme/roads/</entry>
+    </connectionParameters>
+    <__default>false</__default>
+    <featureTypes>
+      <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/acme/datastores/roads/featuretypes.xml" type="application/xml"/>
+    </featureTypes>
+  </dataStore>
+
 
 By default when a shapefile is uploaded, a feature type is automatically
 created. The feature type information can be retrieved as XML with
@@ -163,7 +159,7 @@ a GET request:
 
 .. code-block:: python
 
-   url = ('http://localhost:8080geoserver/rest'
+   url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/roads'
           '/featuretypes/roads.xml')
    r = s.get(url)                                                                  
@@ -316,8 +312,11 @@ The coveragestore information can be retrieved as XML with a GET request:
    doc = etree.fromstring(r.content)
    etree.dump(doc)
 
+Styles
+------
+
 Creating a layer style
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 This example will create a new style on the server and populate it the contents of a local SLD file.
 
@@ -361,6 +360,123 @@ The SLD itself can be downloaded through a a GET request:
 If executed correctly, the response should contain the following::
  
    <Response [200]>
+
+Changing a layer style
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example will alter a layer style. Prior to making any changes,
+it is helpful to view the existing configuration for a given layer.
+
+The following retrieves the "acme:roads" layer information as XML:
+
+.. code-block:: console
+
+   curl -v -u admin:geoserver -XGET "http://localhost:8080/geoserver/rest/layers/acme:roads.xml"
+   url = ('http://localhost:8080/geoserver/rest'
+          '/layers/acme:roads.xml')
+   r = s.get(url)                                                                  
+   doc = etree.fromstring(r.content)                                        
+   etree.dump(doc)                                                       
+
+If executed correctly, the response will be:
+
+The response in this case would be: 
+
+.. code-block:: xml
+
+   <layer>
+     <name>roads</name>
+     <type>VECTOR</type>
+     <defaultStyle>
+       <name>line</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" 
+        href="http://localhost:8080/geoserver/rest/styles/line.xml" type="application/xml"/>
+     </defaultStyle>
+     <resource class="featureType">
+       <name>roads</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" 
+        href="http://localhost:8080/geoserver/rest/workpaces/acme/datastores/roads/featuretypes/roads.xml" 
+        type="application/xml"/>
+     </resource>
+     <enabled>true</enabled>
+     <attribution>
+       <logoWidth>0</logoWidth>
+       <logoHeight>0</logoHeight>
+     </attribution>
+   </layer>
+
+When the layer is created, GeoServer assigns a default style to the layer that matches the geometry of the layer. In this case a style named ``line`` is assigned to the layer. This style can viewed with a WMS request::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=acme:roads
+
+In this next example a new style will be created called ``roads_style`` and assigned to the "acme:roads" layer:
+
+.. code-block:: console
+
+   url = 'http://localhost:8080/geoserver/rest/layers/acme:roads'
+   headers = {'Content-Type': 'text/xml'}
+   data = "<layer><defaultStyle><name>roads_style</name></defaultStyle></layer>" 
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the response should contain the following::
+
+   <Response [200]>
+
+The new style can be viewed with the same WMS request as above::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=acme:roads
+
+Note that if you want to upload the style in a workspace (ie, not making it a global style),
+and then assign this style to a layer in that workspace, you need first to create the style in the given workspace::
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/styles'
+   headers = {'Content-Type': 'text/xml'}
+   data = '<style><name>roads_style</name><filename>roads.sld</filename></style>' 
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+Upload the file within the workspace::
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/acme/styles/roads_style'
+   headers = {'Content-Type': 'application/vnd.ogc.sld+xml'}
+   with open('roads.sld', 'rb') as f:
+       data = f.read()
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+And finally apply that style to the layer. Note the use of the ``<workspace>`` tag in the XML::
+
+   url = 'http://localhost:8080/geoserver/rest/layers/acme:roads'
+   headers = {'Content-Type': 'text/xml'}
+   data = """
+       <layer>
+           <defaultStyle>
+               <name>roads_style</name>
+               <workspace>acme</workspace>
+           </defaultStyle>
+       </layer>"""
+   r = s.put(url, headers=headers, data=data)
+   print(r)
+
+Deleting a layer style
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example will delete the ``roads_style`` created in a previous example.
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/styles/roads_style'
+   r = s.delete(url)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Note that this deleted the global style, not the style associated with ``acme:road`` by the same name.
+.. todo::
+  
 
 Adding a PostGIS database
 -------------------------
@@ -492,6 +608,63 @@ The featuretype information can be retrieved as XML with a GET request:
    doc = etree.fromstring(r.content)
    etree.dump(doc) 
 
+Creating a layer group
+----------------------
+
+In this example a layer group will be created, based on layers that already exist on the server.
+
+The following request creates the new layer group:
+
+.. code-block:: python
+
+   url = 'http://localhost:8080/geoserver/rest/workspaces/topp/layergroups'
+   headers = {'Content-Type': 'text/xml'}
+   data = """
+       <layerGroup>
+         <name>grand_tasmania</name>
+         <mode>SINGLE</mode>
+         <title>Make Tasmania Great Again</title>
+         <abstractTxt>stuff goes here</abstractTxt>
+         <workspace>
+           <name>topp</name>
+         </workspace>
+         <publishables>
+           <published type="layer">
+             <name>tasmania_state_boundaries</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_water_bodies</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_cities</name>
+           </published>
+           <published type="layer">
+             <name>tasmania_roads</name>
+           </published>
+         </publishables>
+         <styles>
+           <style>
+             <name>green</name>
+           </style>
+           <style>
+             <name>cite_lakes</name>
+           </style>
+           <style>
+             <name>capitals</name>
+           </style>
+           <style>
+             <name>simple_roads</name>
+           </style>
+         </styles>
+       </layerGroup>
+       """
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+This layer group can be viewed with a WMS GetMap request::
+
+  http://localhost:8080/geoserver/wms/reflect?layers=grand_tasmania
+
 Retrieving component versions
 -----------------------------
 
@@ -544,7 +717,7 @@ The result will be a very long list of manifest information. While
 this can be useful, it is often desirable to filter this list.
 
 Filtering over resource name
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is possible to filter over resource names using regular expressions.
 This example will retrieve only resources where the ``name`` attribute
@@ -599,7 +772,7 @@ The result will look something like this (edited for brevity):
    </about>
 
 Filtering over resource properties
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Filtering is also available over resulting resource properties.
 This example will retrieve only resources with a property equal to
@@ -639,109 +812,6 @@ in the request parameters.
    r = s.get(url)                                                                  
    doc = etree.fromstring(r.content)
    etree.dump(doc) 
-
-Creating an empty mosaic and harvest granules
----------------------------------------------
-
-The next command uploads an :download:`empty.zip` file. 
-This archive contains the definition of an empty mosaic (no granules in this case) through the following files::
-
-      datastore.properties (the postgis datastore connection params)
-      indexer.xml (The mosaic Indexer, note the CanBeEmpty=true parameter)
-      polyphemus-test.xml (The auxiliary file used by the NetCDF reader to parse schemas and tables)
-
-.. note:: **Make sure to update the datastore.properties file** with your connection params and refresh the zip when done, before uploading it. 
-.. note:: The configure=none parameter allows for future configuration after harvesting
-.. note:: You must have the NetCDF plugin installed
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
-          '/coveragestores/empty/file.imagemosaic?configure=none') 
-   headers = { 'Content-Type': 'application/zip', }                                
-   with open('empty.zip', 'rb') as f:                                         
-       data = f.read()                                                             
-   r = s.put(url, headers=headers, data=data)                                      
-   print(r)  
-
-If executed correctly, the output should contain the following::
-
-   <Response [201]>
-
-The following instead instructs the mosaic to harvest a single
-:download:`polyphemus_20120401.nc` file into the mosaic, collecting its
-properties and updating the mosaic index:
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
-          '/coveragestores/empty/external.imagemosaic') 
-   headers = { 'Content-Type': 'text/plain', }                                
-   data = "file:///path/to/polyphemus_20120401.nc"
-   r = s.post(url, headers=headers, data=data)                                      
-   print(r) 
-
-If executed correctly, the output should contain the following::
-
-   <Response [202]>
-
-Once done you can get the list of coverages/granules available on that store.
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest'                                   
-          '/workspaces/topp/coveragestores/empty/coverages.xml')
-   params = {'list': 'all'}
-   r = s.get(url, params=params)
-   doc = etree.fromstring(r.content)
-   etree.dump(doc)
-
-which will result in the following:
-
-.. code-block:: xml
-
-      <list>
-        <coverageName>NO2</coverageName>
-        <coverageName>O3</coverageName>
-      </list>
-
-Next step is configuring ONCE for coverage (as an instance NO2), an available coverage.
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest'                                   
-          '/workspaces/topp/coveragestores/empty/coverages')
-   headers = {'Content-Type': 'text/xml'}
-   data = """<coverage>
-               <nativeCoverageName>NO2</nativeCoverageName>
-               <name>NO2</name>
-             </coverage>"""
-   r = s.post(url, header=headers, data=data)
-   doc = etree.fromstring(r.content)
-   etree.dump(doc)
-
-If executed correctly, the output should contain the following::
-
-   <Response [201]>
-
-The image mosaic index structure can then be retrieved using something like:
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest'                                   
-          '/workspaces/topp/coveragestores/empty/coverages/NO2.xml')
-   r = s.get(url)
-   doc = etree.fromstring(r.content)
-   etree.dump(doc)
-
-.. code-block:: xml
-
-   <coverages>
-     <coverage>
-       <name>NO2</name>
-       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/empty/coveragestores/empty/coverages/NO2/NO2.xml" type="application/xml"/>
-     </coverage>
-   </coverages>
 
 Uploading and modifying a image mosaic
 --------------------------------------
@@ -783,11 +853,25 @@ If executed correctly, the output should contain the following::
 
    <Response [202]>
 
+Harvesting can also be directed towards a whole directory, as follows:
+
+.. code-block:: console
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/polyphemus/external.imagemosaic')
+   headers = { 'Content-Type': 'text/plain' }                                
+   data = "file:///path/to/mosaic/folder"
+   r = s.post(url, headers=headers, data=data)                                      
+   print(r) 
+
+If executed correctly, the output should contain the following::
+
+   <Response [202]>
+
 The image mosaic index structure can be retrieved using something like:
 
 .. code-block:: console
 
-   curl -v -u admin:geoserver -XGET "http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/polyphemus-v1/coverages/NO2/index.xml"
    url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
           '/coveragestores/polyphemus/coverages/NO2/index.xml')
    r = s.get(url)
@@ -946,6 +1030,107 @@ Removing all the granules originating from a particular file (a NetCDF file can 
    r = s.delete(url, params=params)
    print(r)
    
+Creating an empty mosaic and harvest granules
+---------------------------------------------
+
+The next command uploads an :download:`empty.zip` file. 
+This archive contains the definition of an empty mosaic (no granules in this case) through the following files::
+
+      datastore.properties (the postgis datastore connection params)
+      indexer.xml (The mosaic Indexer, note the CanBeEmpty=true parameter)
+      polyphemus-test.xml (The auxiliary file used by the NetCDF reader to parse schemas and tables)
+
+.. note:: **Make sure to update the datastore.properties file** with your connection params and refresh the zip when done, before uploading it. 
+.. note:: The configure=none parameter allows for future configuration after harvesting
+.. note:: You must have the NetCDF plugin installed
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/empty/file.imagemosaic?configure=none') 
+   headers = { 'Content-Type': 'application/zip', }                                
+   with open('empty.zip', 'rb') as f:                                         
+       data = f.read()                                                             
+   r = s.put(url, headers=headers, data=data)                                      
+   print(r)  
+
+If executed correctly, the output should contain the following::
+
+   <Response [201]>
+
+The following instead instructs the mosaic to harvest a single
+:download:`polyphemus_20120401.nc` file into the mosaic, collecting its
+properties and updating the mosaic index:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest/workspaces/topp'
+          '/coveragestores/empty/external.imagemosaic') 
+   headers = { 'Content-Type': 'text/plain', }                                
+   data = "file:///path/to/polyphemus_20120401.nc"
+   r = s.post(url, headers=headers, data=data)                                      
+   print(r) 
+
+If executed correctly, the output should contain the following::
+
+   <Response [202]>
+
+Once done you can get the list of coverages/granules available on that store.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages.xml')
+   params = {'list': 'all'}
+   r = s.get(url, params=params)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+which will result in the following:
+
+.. code-block:: xml
+
+      <list>
+        <coverageName>NO2</coverageName>
+        <coverageName>O3</coverageName>
+      </list>
+
+Next step is configuring ONCE for coverage (as an instance NO2), an available coverage.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages')
+   headers = {'Content-Type': 'text/xml'}
+   data = """<coverage>
+               <nativeCoverageName>NO2</nativeCoverageName>
+               <name>NO2</name>
+             </coverage>"""
+   r = s.post(url, headers=headers, data=data)
+   print(r)
+
+If executed correctly, the output should contain the following::
+
+   <Response [201]>
+
+The image mosaic index structure can then be retrieved using something like:
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'                                   
+          '/workspaces/topp/coveragestores/empty/coverages/NO2.xml')
+   r = s.get(url)
+   doc = etree.fromstring(r.content)
+   etree.dump(doc)
+
+.. code-block:: xml
+
+   <coverages>
+     <coverage>
+       <name>NO2</name>
+       <atom:link xmlns:atom="http://www.w3.org/2005/Atom" rel="alternate" href="http://localhost:8080/geoserver/rest/workspaces/topp/coveragestores/empty/coveragestores/empty/coverages/NO2/NO2.xml" type="application/xml"/>
+     </coverage>
+   </coverages>
 
 Deleting a workspace
 --------------------
@@ -960,6 +1145,78 @@ be deleted.
           '/workspaces/acme.xml')
    params = {'recurse': True}
    r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a datastore
+--------------------
+
+This example shows how to delete a datastore.
+The "roads" store that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/roads.xml')
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a coveragestore
+------------------------
+
+This example shows how to delete a coveragestore.
+The "polyphemus" store that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/topp/coveragestores/polyphemus.xml')
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a feature type
+-----------------------
+
+This example shows how to delete a feature type.
+The "roads" feature type that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/acme/datastores/roads'
+          '/featuretypes/roads')
+   params = {'recurse': True}
+   r = s.delete(url, params=params)
+   print(r)
+
+If executed correctly, the response should contain the following::
+ 
+   <Response [200]>
+
+Deleting a layer group
+----------------------
+
+This example shows how to delete a layer group.
+The "grand_tasmania" layer group type that was created in an earlier example will be deleted.
+
+.. code-block:: python
+
+   url = ('http://localhost:8080/geoserver/rest'
+          '/workspaces/topp/layergroups/grand_tasmania')
+   r = s.delete(url)
    print(r)
 
 If executed correctly, the response should contain the following::
