@@ -209,16 +209,14 @@ If executed correctly, the response should contain the following::
 
 The shapefile will be added to the existing store and published as a layer.
 
-To verify the contents of the store, execute a GET request.  Since the
-XML response only provides details about the store itself without showing
-its contents, execute a GET request for HTML:
+To verify the contents of the store, execute a GET request.
 
 .. code-block:: python
 
    url = ('http://localhost:8080/geoserver/rest'
           '/workspaces/acme/datastores/rivers.html')
    r = s.get(url)
-   doc = etree.HTML(r.content)
+   doc = etree.fromstring(r.content)
    etree.dump(doc)
 
 Adding a directory of existing shapefiles
@@ -371,14 +369,11 @@ The following retrieves the "acme:roads" layer information as XML:
 
 .. code-block:: console
 
-   curl -v -u admin:geoserver -XGET "http://localhost:8080/geoserver/rest/layers/acme:roads.xml"
    url = ('http://localhost:8080/geoserver/rest'
           '/layers/acme:roads.xml')
    r = s.get(url)                                                                  
    doc = etree.fromstring(r.content)                                        
    etree.dump(doc)                                                       
-
-If executed correctly, the response will be:
 
 The response in this case would be: 
 
@@ -484,7 +479,7 @@ Adding a PostGIS database
 In this example a PostGIS database named ``nyc`` will be added as
 a new store. This section assumes that a PostGIS database named
 ``nyc`` is present on the local system and is accessible by the
-user ``bob``.
+user ``jevans``.
 
 .. code-block:: python
 
@@ -494,7 +489,7 @@ user ``bob``.
        <host>localhost</host>                                                         
        <port>5432</port>                                                              
        <database>nyc</database>                                                       
-       <user>bob</user>                                                               
+       <user>jevans</user>                                                               
        <passwd>postgres</passwd>                                                      
        <dbtype>postgis</dbtype>                                                       
      </connectionParameters>                                                          
@@ -518,18 +513,6 @@ The store information can be retrieved as XML with a GET request:
    r = s.get(url)                                                                     
    doc = etree.fromstring(r.content)                                           
    etree.dump(doc)  
-
-The store information can be retrieved as XML with a GET request:
-
-.. code-block:: python
-
-   url = ('http://localhost:8080/geoserver/rest'
-          '/workspaces/acme/datastores/nyc.xml')
-   r = s.get(url)
-   doc = etree.fromstring(r.content)
-   etree.dump(doc)
-
-The response should look like the following:
 
 .. code-block:: xml
 
@@ -806,7 +789,7 @@ in the request parameters.
 
    url = 'http://localhost:8080/geoserver/rest/about/manifest.xml'
    params = {
-       'key': 'GeoServerModule'
+       'key': 'GeoServerModule',
        'Implementation-Title': 'GeoWebCache (GWC) Module',
    }
    r = s.get(url)                                                                  
